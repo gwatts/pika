@@ -169,9 +169,6 @@ class BaseConnection(Connection):
         """
         Called if we are forced to disconnect for some reason from Connection.
         """
-        # Remove from the IOLoop
-        self.ioloop.stop()
-
         # Close our socket
         self.socket.shutdown(socket.SHUT_RDWR)
         self.socket.close()
@@ -201,9 +198,6 @@ probable permission error when accessing a virtual host")
         """
         Called internally when we know our socket is disconnected already
         """
-        # Remove from the IOLoop
-        self.ioloop.stop()
-
         # Close up our Connection state
         self._on_connection_closed(None, True)
 

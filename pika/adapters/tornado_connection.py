@@ -19,6 +19,7 @@ if IOLoop:
     READ = ioloop.IOLoop.READ
     WRITE = ioloop.IOLoop.WRITE
 
+import errno
 import time
 
 class TornadoConnection(BaseConnection):
@@ -76,6 +77,18 @@ class TornadoConnection(BaseConnection):
 
         BaseConnection._handle_disconnect(self)
 
+    def _handle_tornado_events(self, fd, events):
+        """
+        Tornado does not pass error through to this callback
+        Synthesize one for the superclass' handle_events method
+        """
+        if events & ERROR:
+            error = (errno.ECONNABORTED,)
+        else:
+            error = None
+        BaseConnection._handle_events(self, fd, events, error)
+
+
     def _adapter_disconnect(self):
         """
         Disconnect from the RabbitMQ Broker
@@ -90,7 +103,7 @@ class TornadoConnection(BaseConnection):
 
         # Add the ioloop handler for the event state
         self.ioloop.add_handler(self.socket.fileno(),
-                                self._handle_events,
+                                self._handle_tornado_events,
                                 self.event_state)
 
     def stop_poller(self):
